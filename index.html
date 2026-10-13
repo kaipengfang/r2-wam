@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="R²-WAM: a world action model regenerates rollouts of previously learned tasks, rectifies them by completion-aware truncation and flow-based consistency filtering, and replays them. Data-free continual learning that nearly matches experience replay.">
+  <title>R²-WAM: Data-Free Continual Learning for World Action Model with Rectified Generative Replay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Castoro:ital@1&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/aos.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <meta property="og:title" content="R²-WAM: Data-Free Continual Learning for World Action Model with Rectified Generative Replay">
+  <meta property="og:description" content="A world action model regenerates its own past tasks, rectifies the rollouts, and replays them: forgetting drops by over 90% with no data of previous tasks.">
+  <meta property="og:image" content="https://kaipengfang.github.io/r2-wam/resources/images/fig1.png">
+  <meta property="og:url" content="https://kaipengfang.github.io/r2-wam/">
+  <script src="./static/js/aos.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="container">
+    <h1>Data-Free Continual Learning for World Action Model with <span class="m">Rectified Generative Replay</span></h1>
+    <p class="tag"><b>R²-WAM</b>: a world action model that regenerates its own past so it does not have to forget it</p>
+    <p class="authors"><a href="https://kaipengfang.github.io/">Kaipeng Fang</a><sup>1,2</sup>, <a href="#">Hangxu Liu</a><sup>2</sup>, <a href="#">Chaojian Shi</a><sup>3</sup>, <a href="https://zhouyunsong.github.io/">Yunsong Zhou</a><sup>2</sup>,<br><a href="#">Hongzi Zhu</a><sup>4</sup>, <a href="#">Minyi Guo</a><sup>4</sup>, <a href="https://jingkuansong.github.io/">Jingkuan Song</a><sup>5,6</sup>, <a href="https://lianligao.github.io/">Lianli Gao</a><sup>1</sup></p>
+    <p class="affil"><sup>1</sup>University of Electronic Science and Technology of China &nbsp;&nbsp; <sup>2</sup>Shanghai AI Lab &nbsp;&nbsp; <sup>3</sup>Fudan University<br><sup>4</sup>Shanghai Jiao Tong University &nbsp;&nbsp; <sup>5</sup>Tongji University &nbsp;&nbsp; <sup>6</sup>Shanghai Innovation Institute</p>
+    <div class="links">
+      <span class="btn soon"><i class="fas fa-file-pdf"></i> Paper <small>(coming soon)</small></span>
+      <a class="btn" href="#"><i class="ai ai-arxiv"></i> arXiv</a>
+      <span class="btn soon"><i class="fab fa-github"></i> Code <small>(coming soon)</small></span>
+      <a class="btn" href="#bibtex"><i class="fas fa-quote-right"></i> BibTeX</a>
+    </div>
+
+    <div class="teaser-wrap" style="max-width:900px">
+      <video id="teaser" muted loop playsinline controls preload="metadata" poster="./resources/images/video_cover.jpg">
+        <source src="./resources/video/supplementary_video.mp4" type="video/mp4">
+      </video>
+      <div class="play-btn" id="teaser-play"><i class="fas fa-play"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABSTRACT ===================== -->
+<section class="section section-alt" id="abstract">
+  <div class="container">
+    <h2 class="title">Abstract</h2>
+    <div class="fig-pair" data-aos="fade-up">
+      <figure class="fig inset"><img src="./resources/images/fig1a.png" alt="Continual learning in robotics: forgetting vs. experience replay"></figure>
+      <figure class="fig inset"><img src="./resources/images/fig1b.png" alt="R²-WAM overview"></figure>
+    </div>
+    <figcaption style="max-width:1000px;margin:.8rem auto 0"><b>(a)</b> A WAM fine-tuned on a sequence of tasks forgets the earlier ones; experience replay (ER) retains them but needs the data of previous tasks, which a deployed model usually does not carry. <b>(b)</b> R²-WAM lets the model regenerate rollouts of its previous tasks, rectifies them by truncation and filtering, and replays them when learning the next task, with no real data of previous tasks.</figcaption>
+    <div class="narrow" style="margin-top:1.6rem">
+      <p class="body">World action models (WAMs) built on pretrained video generation models adapt quickly to new robotic tasks, but they forget previously learned tasks under sequential fine-tuning. Experience replay (ER) mitigates such forgetting by rehearsing data of previous tasks, yet this data is often unavailable in robotics, where a policy is deployed as weights only and its training data is not shared along with it. In this work, we ask whether a WAM can achieve <b>data-free continual learning by regenerating its own past</b>.</p>
+      <p class="body">Our key observation is that a WAM can indeed autoregressively regenerate complete rollouts of previously learned tasks and replay them to mitigate forgetting. However, replaying such raw rollouts still lags far behind replaying real data, which we attribute to two issues. First, the WAM is unable to recognize task completion and keeps generating purposeless motion after the task is done. Second, under open-loop generation, the generated actions gradually drift away from the generated observations.</p>
+      <p class="body">To address both issues, we present <b>rectified generative replay (R²-WAM)</b>, which truncates generated rollouts at task completion with an agentic evaluator and filters out rollouts whose actions are physically inconsistent with the observations. On the four LIBERO suites and five real-world tasks, R²-WAM reduces forgetting by over 90% relative to sequential fine-tuning and nearly matches ER without accessing any data from previous tasks. Our analysis further reveals that forgetting in WAMs concentrates in inverse dynamics modeling: a forgotten WAM still produces visually plausible observations of previous tasks while its generated actions fail.</p>
+    </div>
+    <div class="stats" data-aos="fade-up">
+      <div class="stat"><div class="v">92.7</div><div class="k">Avg. success rate of R²-WAM on LIBERO, with no data of previous tasks</div></div>
+      <div class="stat"><div class="v g">94.6</div><div class="k">Experience replay with real data (upper bound)</div></div>
+      <div class="stat"><div class="v y">12.5</div><div class="k">Sequential fine-tuning (catastrophic forgetting)</div></div>
+      <div class="stat"><div class="v">&gt;90%</div><div class="k">Forgetting reduced vs. sequential fine-tuning, on every suite</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== METHOD ===================== -->
+<section class="section" id="method">
+  <div class="container">
+    <h2 class="title">Method: Generate, Rectify, Replay</h2>
+    <p class="intro">Before learning task <i>k</i>, the current model WAM<sub><i>k</i>−1</sub> generates candidate rollouts of the task it has just learned. Two rectification steps turn them into usable replay data. Click a step to see what it does and why it is needed.</p>
+    <figure class="fig inset w-1000" data-aos="fade-up">
+      <img src="./resources/images/fig2.png" alt="Figure 2: overview of rectified generative replay">
+    </figure>
+
+    <div class="pills" data-group="steps">
+      <button class="pill active" data-target="gen"><span class="num">①</span> Generate</button>
+      <button class="pill" data-target="trunc"><i class="fas fa-cut"></i> Rectify: Truncate</button>
+      <button class="pill" data-target="filt"><i class="fas fa-filter"></i> Rectify: Filter</button>
+      <button class="pill" data-target="replay"><span class="num">③</span> Replay</button>
+    </div>
+
+    <div class="step-panel active" data-group="steps" data-id="gen">
+      <div>
+        <h4>① The WAM regenerates its own past</h4>
+        <p>Given only the language instruction of task <i>k</i>−1 and a noise-initialised first frame, WAM<sub><i>k</i>−1</sub> autoregressively generates <i>M</i> candidate rollouts as <i>H</i>-step chunks of observation and action pairs. Nothing from the original training data is used.</p>
+        <p>Raw rollouts already help: replaying them lifts the average LIBERO success rate from 12.5% (sequential fine-tuning) to 70.4%. But they are still far from real data, for the two reasons shown in the next steps.</p>
+      </div>
+      <div class="media">
+        <div class="mini">
+          <video data-src="./resources/video/sim/A_object_ketchup_basket.mp4" muted loop playsinline></video>
+          <video data-src="./resources/video/sim/A_goal_turn_on_stove.mp4" muted loop playsinline></video>
+          <video data-src="./resources/video/sim/A_long_two_moka_pots_on_stove.mp4" muted loop playsinline></video>
+        </div>
+        <div class="lbl">Rollouts generated by the WAM for three previously learned tasks</div>
+      </div>
+    </div>
+
+    <div class="step-panel" data-group="steps" data-id="trunc">
+      <div>
+        <h4>② Truncate at task completion</h4>
+        <p><b>Problem.</b> The WAM has no notion of being done. After the object is placed it keeps generating motion: the gripper returns to the basket, re-grasps the bowl, or wanders. Replaying these tails teaches purposeless behaviour.</p>
+        <p><b>Fix.</b> A VLM evaluator, given the instruction and an in-context example, inspects the rollout, estimates the completion time and cuts the rollout at the following chunk boundary. Rollouts that never accomplish the task are discarded.</p>
+        <p style="color:var(--muted);font-size:.9rem">Removing truncation drops LIBERO-Spatial success from 94.0% to 70.8%.</p>
+      </div>
+      <div class="media">
+        <video data-src="./resources/video/diag/E_cut_bowl_between_plate_ramekin_b.mp4" muted loop playsinline style="max-width:210px;margin:0 auto"></video>
+        <div class="lbl">Bowl placed, then re-grasped. Red = removed by the evaluator.</div>
+      </div>
+    </div>
+
+    <div class="step-panel" data-group="steps" data-id="filt">
+      <div>
+        <h4>② Filter physically inconsistent rollouts</h4>
+        <p><b>Problem.</b> Under open-loop generation the actions gradually drift away from the observations: the generated video shows one arm pose while the generated actions imply another.</p>
+        <p><b>Fix.</b> The generated actions are replayed in a robot-only simulator to obtain the optical flow they imply; a 3D tracker estimates the flow actually visible in the generated frames. Their 2D and 3D discrepancy gives a consistency score <i>s</i><sub>flow</sub>, and only the most consistent rollouts are kept.</p>
+        <p style="color:var(--muted);font-size:.9rem">Removing filtering drops LIBERO-Spatial success from 94.0% to 80.8%.</p>
+      </div>
+      <div class="media">
+        <div class="flow-wrap">
+        <div class="flow-labels"><span>Generated frame<br><small>+ pose from actions</small></span><span>Flow from<br><small>actions</small></span><span>Flow from<br><small>observations</small></span></div>
+        <video data-src="./resources/video/diag/flow_consistent.mp4" muted loop playsinline></video>
+        <div class="lbl" style="margin:.15rem 0 .5rem"><span class="badge">consistent</span> kept</div>
+        <video data-src="./resources/video/diag/flow_inconsistent.mp4" muted loop playsinline></video>
+        <div class="lbl" style="margin-top:.15rem"><span class="badge red">inconsistent</span> filtered out</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-panel" data-group="steps" data-id="replay">
+      <div>
+        <h4>③ Replay with the new task</h4>
+        <p>The kept rollouts R<sub><i>k</i>−1</sub> join the replay set R<sub>&lt;<i>k</i></sub>, which is mixed with the demonstrations D<sub><i>k</i></sub> of the new task to fine-tune WAM<sub><i>k</i>−1</sub> into WAM<sub><i>k</i></sub>. The same procedure repeats at every stage, so the model never needs any real data of earlier tasks.</p>
+        <p>With 20 rectified rollouts per previous task, R²-WAM reaches 92.7% average success on LIBERO, 1.9 points below ER, which replays 20 real demonstrations per task.</p>
+      </div>
+      <div class="media">
+        <div class="chips">
+          <div class="chip"><div class="v y">12.5</div><div class="k">Seq-FT<br>no replay</div></div>
+          <div class="chip"><div class="v">70.4</div><div class="k">R-WAM<br>raw rollouts</div></div>
+          <div class="chip"><div class="v">92.7</div><div class="k">R²-WAM<br>rectified rollouts</div></div>
+          <div class="chip"><div class="v g">94.6</div><div class="k">ER<br>real data</div></div>
+        </div>
+        <div class="lbl">Average success rate (%) over the four LIBERO suites</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== GENERATED REPLAYS ===================== -->
+<section class="section section-alt" id="replays">
+  <div class="container">
+    <h2 class="title">Rollouts Generated by the WAM</h2>
+    <p class="intro">These are the replay data. Each clip is regenerated by the WAM for a task it learned earlier, at the native 128×128 generation resolution and 10 fps (one frame per action step). Switch suites below.</p>
+    <div class="center" style="margin-top:1rem"><div class="toggle" data-group="gen"><button class="active" data-view="head">Head camera</button><button data-view="wrist">Wrist camera</button></div></div>
+    <div class="tabs" data-group="suite" style="margin-top:1rem">
+      <button class="tab-btn active" data-target="spatial">LIBERO-Spatial</button>
+      <button class="tab-btn" data-target="object">LIBERO-Object</button>
+      <button class="tab-btn" data-target="goal">LIBERO-Goal</button>
+      <button class="tab-btn" data-target="long">LIBERO-10</button>
+    </div>
+    <div class="pane active" data-group="suite" data-id="spatial">
+      <div class="vgrid">
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_spatial_bowl_table_center.mp4" data-wrist="./resources/video/sim/A_spatial_bowl_table_center_wrist.mp4" data-src="./resources/video/sim/A_spatial_bowl_table_center.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl from the table center and place it on the plate</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_spatial_bowl_next_to_cookie_box.mp4" data-wrist="./resources/video/sim/A_spatial_bowl_next_to_cookie_box_wrist.mp4" data-src="./resources/video/sim/A_spatial_bowl_next_to_cookie_box.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl next to the cookie box and place it on the plate</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_spatial_bowl_on_stove.mp4" data-wrist="./resources/video/sim/A_spatial_bowl_on_stove_wrist.mp4" data-src="./resources/video/sim/A_spatial_bowl_on_stove.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl on the stove and place it on the plate</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_spatial_bowl_from_top_drawer.mp4" data-wrist="./resources/video/sim/A_spatial_bowl_from_top_drawer_wrist.mp4" data-src="./resources/video/sim/A_spatial_bowl_from_top_drawer.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl in the top drawer of the cabinet and place it on the plate</div></div>
+      </div>
+    </div>
+    <div class="pane" data-group="suite" data-id="object">
+      <div class="vgrid">
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_object_ketchup_basket.mp4" data-wrist="./resources/video/sim/A_object_ketchup_basket_wrist.mp4" data-src="./resources/video/sim/A_object_ketchup_basket.mp4" muted loop playsinline></video><div class="cap">Pick up the ketchup and place it in the basket</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_object_milk_basket.mp4" data-wrist="./resources/video/sim/A_object_milk_basket_wrist.mp4" data-src="./resources/video/sim/A_object_milk_basket.mp4" muted loop playsinline></video><div class="cap">Pick up the milk and place it in the basket</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_object_alphabet_soup_basket.mp4" data-wrist="./resources/video/sim/A_object_alphabet_soup_basket_wrist.mp4" data-src="./resources/video/sim/A_object_alphabet_soup_basket.mp4" muted loop playsinline></video><div class="cap">Pick up the alphabet soup and place it in the basket</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_object_tomato_sauce_basket.mp4" data-wrist="./resources/video/sim/A_object_tomato_sauce_basket_wrist.mp4" data-src="./resources/video/sim/A_object_tomato_sauce_basket.mp4" muted loop playsinline></video><div class="cap">Pick up the tomato sauce and place it in the basket</div></div>
+      </div>
+    </div>
+    <div class="pane" data-group="suite" data-id="goal">
+      <div class="vgrid">
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_goal_turn_on_stove.mp4" data-wrist="./resources/video/sim/A_goal_turn_on_stove_wrist.mp4" data-src="./resources/video/sim/A_goal_turn_on_stove.mp4" muted loop playsinline></video><div class="cap">Turn on the stove</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_goal_open_middle_drawer.mp4" data-wrist="./resources/video/sim/A_goal_open_middle_drawer_wrist.mp4" data-src="./resources/video/sim/A_goal_open_middle_drawer.mp4" muted loop playsinline></video><div class="cap">Open the middle drawer of the cabinet</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_goal_drawer_put_bowl_inside.mp4" data-wrist="./resources/video/sim/A_goal_drawer_put_bowl_inside_wrist.mp4" data-src="./resources/video/sim/A_goal_drawer_put_bowl_inside.mp4" muted loop playsinline></video><div class="cap">Open the top drawer and put the bowl inside</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_goal_bowl_on_top_of_cabinet.mp4" data-wrist="./resources/video/sim/A_goal_bowl_on_top_of_cabinet_wrist.mp4" data-src="./resources/video/sim/A_goal_bowl_on_top_of_cabinet.mp4" muted loop playsinline></video><div class="cap">Put the bowl on top of the cabinet</div></div>
+      </div>
+    </div>
+    
+    <div class="pane" data-group="suite" data-id="long">
+      <div class="vgrid">
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_long_two_moka_pots_on_stove.mp4" data-wrist="./resources/video/sim/A_long_two_moka_pots_on_stove_wrist.mp4" data-src="./resources/video/sim/A_long_two_moka_pots_on_stove.mp4" muted loop playsinline></video><div class="cap">Put both moka pots on the stove</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_long_mug_in_microwave_and_close.mp4" data-wrist="./resources/video/sim/A_long_mug_in_microwave_and_close_wrist.mp4" data-src="./resources/video/sim/A_long_mug_in_microwave_and_close.mp4" muted loop playsinline></video><div class="cap">Put the yellow and white mug in the microwave and close it</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_long_bowl_in_drawer_and_close.mp4" data-wrist="./resources/video/sim/A_long_bowl_in_drawer_and_close_wrist.mp4" data-src="./resources/video/sim/A_long_bowl_in_drawer_and_close.mp4" muted loop playsinline></video><div class="cap">Put the black bowl in the bottom drawer of the cabinet and close it</div></div>
+        <div class="vcard sq"><video data-view-group="gen" data-head="./resources/video/sim/A_long_book_in_caddy.mp4" data-wrist="./resources/video/sim/A_long_book_in_caddy_wrist.mp4" data-src="./resources/video/sim/A_long_book_in_caddy.mp4" muted loop playsinline></video><div class="cap">Pick up the book and place it in the back compartment of the caddy</div></div>
+      </div>
+    </div>
+
+    <h3 class="sub">Where the Evaluator Cuts</h3>
+    <p class="intro">Four raw generated rollouts with the evaluator’s decision on the timeline. In each case the task is completed, after which the WAM keeps going and reaches back down to re-grasp the bowl. The red-tinted frames are what truncation removes.</p>
+    <div class="center"><div class="toggle" data-group="cut"><button class="active" data-view="head">Head camera</button><button data-view="wrist">Wrist camera</button></div></div>
+    <div class="vgrid" style="margin-top:1.2rem">
+      <div class="vcard"><video data-view-group="cut" data-head="./resources/video/diag/E_cut_bowl_between_plate_ramekin_a.mp4" data-wrist="./resources/video/diag/E_cut_bowl_between_plate_ramekin_a_wrist.mp4" data-src="./resources/video/diag/E_cut_bowl_between_plate_ramekin_a.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl between the plate and the ramekin and place it on the plate</div></div>
+      <div class="vcard"><video data-view-group="cut" data-head="./resources/video/diag/E_cut_bowl_between_plate_ramekin_b.mp4" data-wrist="./resources/video/diag/E_cut_bowl_between_plate_ramekin_b_wrist.mp4" data-src="./resources/video/diag/E_cut_bowl_between_plate_ramekin_b.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl between the plate and the ramekin and place it on the plate</div></div>
+      <div class="vcard"><video data-view-group="cut" data-head="./resources/video/diag/E_cut_bowl_on_cookie_box_a.mp4" data-wrist="./resources/video/diag/E_cut_bowl_on_cookie_box_a_wrist.mp4" data-src="./resources/video/diag/E_cut_bowl_on_cookie_box_a.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl on the cookie box and place it on the plate</div></div>
+      <div class="vcard"><video data-view-group="cut" data-head="./resources/video/diag/E_cut_bowl_on_cookie_box_b.mp4" data-wrist="./resources/video/diag/E_cut_bowl_on_cookie_box_b_wrist.mp4" data-src="./resources/video/diag/E_cut_bowl_on_cookie_box_b.mp4" muted loop playsinline></video><div class="cap">Pick up the black bowl on the cookie box and place it on the plate</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section class="section" id="results">
+  <div class="container">
+    <h2 class="title">Results on LIBERO</h2>
+    <p class="intro">Four LIBERO suites learned sequentially, three training seeds. All replay methods use 20 episodes per previous task. ER replays real demonstrations and serves as the upper bound; R-WAM replays raw generated rollouts without rectification.</p>
+    <div class="tablewrap" data-aos="fade-up">
+      <table class="res">
+        <tr><th rowspan="2">Method</th><th class="grp" colspan="2">LIBERO-Spatial</th><th class="grp" colspan="2">LIBERO-Object</th><th class="grp" colspan="2">LIBERO-Goal</th><th class="grp" colspan="2">LIBERO-10</th><th class="grp" colspan="3">Average</th></tr>
+        <tr><th>SR ↑</th><th>NBT ↓</th><th>SR ↑</th><th>NBT ↓</th><th>SR ↑</th><th>NBT ↓</th><th>SR ↑</th><th>NBT ↓</th><th>SR ↑</th><th>NBT ↓</th><th>Plast. ↑</th></tr>
+        <tr><td>Seq-FT</td><td>11.2</td><td>86.07</td><td>21.2</td><td>67.84</td><td>9.8</td><td>84.87</td><td>7.6</td><td>82.00</td><td>12.5</td><td>80.19</td><td>94.4</td></tr>
+        <tr><td>Seq-LoRA</td><td>9.6</td><td>75.42</td><td>17.6</td><td>52.47</td><td>9.8</td><td>68.72</td><td>7.4</td><td>71.24</td><td>11.1</td><td>66.96</td><td>84.4</td></tr>
+        <tr><td>EWC</td><td>12.0</td><td>85.59</td><td>23.6</td><td>62.19</td><td>10.0</td><td>84.55</td><td>7.8</td><td>82.24</td><td>13.3</td><td>78.64</td><td>95.0</td></tr>
+        <tr><td>LwF</td><td>13.0</td><td>85.14</td><td>27.6</td><td>61.76</td><td>10.4</td><td>83.70</td><td>8.6</td><td>78.96</td><td>14.9</td><td>77.39</td><td>94.2</td></tr>
+        <tr class="er sep"><td>ER (real data)</td><td>94.0<small>±0.3</small></td><td>0.54<small>±0.60</small></td><td>97.3<small>±0.8</small></td><td>−1.83<small>±1.16</small></td><td>92.8<small>±2.8</small></td><td>2.11<small>±1.45</small></td><td>94.1<small>±0.3</small></td><td>−0.46<small>±0.43</small></td><td>94.6<small>±0.5</small></td><td>0.09<small>±0.79</small></td><td>94.6<small>±0.7</small></td></tr>
+        <tr><td>R-WAM (raw replay)</td><td>76.1<small>±8.7</small></td><td>11.97<small>±2.58</small></td><td>83.1<small>±6.8</small></td><td>18.93<small>±5.93</small></td><td>51.2<small>±4.9</small></td><td>27.31<small>±1.75</small></td><td>71.3<small>±2.6</small></td><td>7.63<small>±2.69</small></td><td>70.4<small>±0.4</small></td><td>16.46<small>±1.13</small></td><td>89.1<small>±1.1</small></td></tr>
+        <tr class="ours"><td>R²-WAM (ours)</td><td>94.0<small>±1.1</small></td><td>2.90<small>±0.32</small></td><td>95.5<small>±0.4</small></td><td>−0.31<small>±1.05</small></td><td>92.2<small>±2.3</small></td><td>2.00<small>±3.17</small></td><td>88.9<small>±4.2</small></td><td>4.73<small>±2.28</small></td><td>92.7<small>±1.2</small></td><td>2.33<small>±1.08</small></td><td>94.7<small>±0.4</small></td></tr>
+      </table>
+    </div>
+    <p class="tnote">SR: average success rate over all tasks after the last stage (per-suite Plasticity omitted here; see the paper). NBT: negative backward transfer (forgetting). Plast.: plasticity, the success on each task right after it is learned. Without replay, the WAM forgets almost everything (SR 11–15%) although it learns each new task well (Plasticity above 84%).</p>
+
+    <div class="narrow" style="margin-top:2.5rem;max-width:620px" data-aos="fade-up">
+      <h3 class="sub" style="margin-top:0">Which rectification step matters?</h3>
+      <table class="res">
+        <tr><th>Variant (LIBERO-Spatial)</th><th>SR ↑</th><th>NBT ↓</th><th>Plast. ↑</th></tr>
+        <tr><td>R-WAM (no rectification)</td><td>76.1</td><td>11.97</td><td>93.6</td></tr>
+        <tr><td>R²-WAM w/o truncation</td><td>70.8</td><td>13.73</td><td>89.2</td></tr>
+        <tr><td>R²-WAM w/o filtering</td><td>80.8</td><td>7.02</td><td>91.4</td></tr>
+        <tr class="ours"><td>R²-WAM (full)</td><td>94.0</td><td>2.90</td><td>95.7</td></tr>
+      </table>
+      <p class="tnote">Both steps are needed. Replaying untruncated rollouts is even worse than replaying raw ones, because the purposeless tails are also where drift is largest.</p>
+    </div>
+    <h3 class="sub">Does the consistency score pick good rollouts?</h3>
+    <figure class="fig inset w-1000" data-aos="fade-up"><img src="./resources/images/consistency_analysis.png" alt="Consistency score vs executability">
+      <figcaption><b>(a)</b> Generated rollouts are ranked by <i>s</i><sub>flow</sub> and split into five bins. Executing each rollout’s generated actions in the simulator, 82.5% of the rollouts in the most consistent bin complete the task, versus 41.2% in the least consistent bin: the score predicts whether a rollout is physically executable. <b>(b)</b> Flow simulated from the generated actions (blue) against flow estimated from the generated frames (orange) for a consistent and an inconsistent rollout.</figcaption></figure>
+  </div>
+</section>
+
+<!-- ===================== REAL ROBOT ===================== -->
+<section class="section section-alt" id="real">
+  <div class="container">
+    <h2 class="title">Real-World Results</h2>
+    <p class="intro">Five sandwich-making tasks learned one after another on a real arm with a dexterous hand: steak, luncheon meat, cheese, fried egg, meat slice. Each task has four stages and is scored by progress rate.</p>
+    <div class="two-col v-center" style="grid-template-columns:1.35fr 1fr" data-aos="fade-up">
+      <figure class="fig inset"><img src="./resources/images/real_tasks_montage.png" alt="Five real tasks and their four stages"><figcaption>The five tasks share the same scene and differ only in the ingredient, which makes forgetting easy to trigger and easy to measure.</figcaption></figure>
+      <div>
+        <table class="res">
+          <tr><th>Method</th><th>SR ↑</th><th>NBT ↓</th><th>Plast. ↑</th></tr>
+          <tr class="er"><td>ER (real data)</td><td>91.8</td><td>2.27</td><td>94.8</td></tr>
+          <tr><td>Seq-FT</td><td>28.5</td><td>65.62</td><td>98.8</td></tr>
+          <tr class="ours"><td>R²-WAM (ours)</td><td>89.5</td><td>3.45</td><td>93.8</td></tr>
+        </table>
+        <p class="tnote">Metrics computed on the progress rate after the fifth task. R²-WAM retains the earlier tasks within 2.3 points of ER, without any real data of those tasks.</p>
+      </div>
+    </div>
+
+    <h3 class="sub">R²-WAM on all five tasks after sequential learning</h3>
+    <p class="intro">Every clip is the final model, after all five tasks were learned. Toggle between the head camera and the wrist camera.</p>
+    <div class="center"><div class="toggle" data-group="t5"><button class="active" data-view="head">Head camera</button><button data-view="wrist">Wrist camera</button></div></div>
+    <div class="vgrid" style="grid-template-columns:repeat(5,1fr);margin-top:1.2rem">
+      <div class="vcard"><video data-view-group="t5" data-head="./resources/video/real/tasks5_ours_t0_steak_k3_n2_head_edit.mp4" data-wrist="./resources/video/real/tasks5_ours_t0_steak_k3_n2_wrist_edit.mp4" data-src="./resources/video/real/tasks5_ours_t0_steak_k3_n2_head_edit.mp4" muted loop playsinline></video><div class="cap">T1 · steak</div></div>
+      <div class="vcard"><video data-view-group="t5" data-head="./resources/video/real/tasks5_ours_t1_luncheon_meat_k1_n1_head_edit.mp4" data-wrist="./resources/video/real/tasks5_ours_t1_luncheon_meat_k1_n1_wrist_edit.mp4" data-src="./resources/video/real/tasks5_ours_t1_luncheon_meat_k1_n1_head_edit.mp4" muted loop playsinline></video><div class="cap">T2 · luncheon meat</div></div>
+      <div class="vcard"><video data-view-group="t5" data-head="./resources/video/real/tasks5_ours_t2_cheese_k4_n3_head_edit.mp4" data-wrist="./resources/video/real/tasks5_ours_t2_cheese_k4_n3_wrist_edit.mp4" data-src="./resources/video/real/tasks5_ours_t2_cheese_k4_n3_head_edit.mp4" muted loop playsinline></video><div class="cap">T3 · cheese</div></div>
+      <div class="vcard"><video data-view-group="t5" data-head="./resources/video/real/tasks5_ours_t3_fried_egg_k3_n5_head_edit.mp4" data-wrist="./resources/video/real/tasks5_ours_t3_fried_egg_k3_n5_wrist_edit.mp4" data-src="./resources/video/real/tasks5_ours_t3_fried_egg_k3_n5_head_edit.mp4" muted loop playsinline></video><div class="cap">T4 · fried egg</div></div>
+      <div class="vcard"><video data-view-group="t5" data-head="./resources/video/real/tasks5_ours_t4_meat_slice_k4_n1_head_edit.mp4" data-wrist="./resources/video/real/tasks5_ours_t4_meat_slice_k4_n1_wrist_edit.mp4" data-src="./resources/video/real/tasks5_ours_t4_meat_slice_k4_n1_head_edit.mp4" muted loop playsinline></video><div class="cap">T5 · meat slice</div></div>
+    </div>
+
+    <h3 class="sub">Does the first task survive four more tasks?</h3>
+    <p class="intro">Task 1 (steak) executed by the final checkpoint of each method, 8× speed. Sequential fine-tuning has forgotten it; R²-WAM retains it with no steak data at all.</p>
+    <div class="center"><div class="toggle" data-group="cmp"><button class="active" data-view="head">Head camera</button><button data-view="wrist">Wrist camera</button></div></div>
+    <div class="vgrid three" style="margin-top:1.2rem;max-width:900px">
+      <div class="vcard"><video data-view-group="cmp" data-head="./resources/video/real/compare3_sft_t0_steak_k4_n1_head_edit8x.mp4" data-wrist="./resources/video/real/compare3_sft_t0_steak_k4_n1_wrist_edit8x.mp4" data-src="./resources/video/real/compare3_sft_t0_steak_k4_n1_head_edit8x.mp4" muted loop playsinline></video><div class="cap">Seq-FT <span class="badge red">forgets</span></div></div>
+      <div class="vcard"><video data-view-group="cmp" data-head="./resources/video/real/compare3_ours_t0_steak_k4_n1_head_edit8x.mp4" data-wrist="./resources/video/real/compare3_ours_t0_steak_k4_n1_wrist_edit8x.mp4" data-src="./resources/video/real/compare3_ours_t0_steak_k4_n1_head_edit8x.mp4" muted loop playsinline></video><div class="cap">R²-WAM (ours) <span class="badge">retains, data-free</span></div></div>
+      <div class="vcard"><video data-view-group="cmp" data-head="./resources/video/real/compare3_er_t0_steak_k4_n2_head_edit8x.mp4" data-wrist="./resources/video/real/compare3_er_t0_steak_k4_n2_wrist_edit8x.mp4" data-src="./resources/video/real/compare3_er_t0_steak_k4_n2_head_edit8x.mp4" muted loop playsinline></video><div class="cap">ER <span class="badge grey">retains, needs real data</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ANALYSIS ===================== -->
+<section class="section" id="analysis">
+  <div class="container">
+    <h2 class="title">Where Does Forgetting Happen?</h2>
+    <p class="intro">A WAM couples two capabilities, inverse dynamics modeling and video prediction. We probe each separately with teacher forcing on LIBERO-Spatial as later tasks arrive, and ask which of them is lost.</p>
+    <figure class="fig inset w-1000" data-aos="fade-up">
+      <img src="./resources/images/forgetting_combined.png" alt="Forgetting concentrates in inverse dynamics">
+      <figcaption><b>(a)</b> Relative retention of two probed capabilities on LIBERO-Spatial, Δ tasks after a task was learned. Circles, solid: inverse dynamics modeling (actions predicted from real observations, executed in simulation and scored by success). Squares, dashed: video prediction (observations predicted from real actions, scored by PSNR). Yellow: Seq-FT; green: R²-WAM. Seq-FT forgets inverse dynamics almost entirely (retention drops to 8% after one new task) while video prediction is largely preserved (78%); R²-WAM keeps both above 75%. <b>(b)</b> Rollouts generated by the final checkpoints from the same real first frame of T0 (R²-WAM shown after truncation). Both produce a fluent video of the task, but only the actions of R²-WAM accomplish it when executed in simulation (rightmost frame).</figcaption>
+    </figure>
+    <div class="narrow" style="margin-top:1.5rem" data-aos="fade-up">
+      <p class="body">This asymmetry explains why raw generated rollouts help at all, and why rectification is needed. Even a WAM whose actions have collapsed still imagines visually plausible observations, so it can regenerate the scene of a previous task; what is lost is the inverse dynamics that turns those observations into actions, and it is the same observation–action mapping that drifts inside long open-loop rollouts. Truncating the rollouts and keeping only the action-consistent ones is what makes the regenerated past a faithful substitute for the real one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BIBTEX ===================== -->
+<section class="section section-alt" id="bibtex">
+  <div class="container">
+    <h2 class="title">BibTeX</h2>
+    <pre class="bib"><button class="copy" id="copy-bib">Copy</button><code id="bibtex">@article{fang2026r2wam,
+  title   = {Data-Free Continual Learning for World Action Model with Rectified Generative Replay},
+  author  = {Fang, Kaipeng and Liu, Hangxu and Shi, Chaojian and Zhou, Yunsong and Zhu, Hongzi and Guo, Minyi and Song, Jingkuan and Gao, Lianli},
+  year    = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<footer>
+  Project page of R²-WAM. Layout inspired by the <a href="https://nerfies.github.io/">Nerfies</a> template.
+</footer>
+</body>
+</html>
