@@ -143,3 +143,8 @@ footer{color:var(--muted);font-size:.85rem;text-align:center;padding:2rem 1rem;b
 
 .flow-wrap{max-width:330px;margin:0 auto}
 .flow-labels{font-size:.72rem}
+
+.vgrid.five{grid-template-columns:repeat(5,1fr)}
+.two-col.real-cols{grid-template-columns:1.35fr 1fr}
+@media(max-width:900px){.vgrid.five{grid-template-columns:repeat(3,1fr)}.two-col.real-cols{grid-template-columns:1fr}}
+@media(max-width:520px){.vgrid.five{grid-template-columns:repeat(2,1fr)}figure.fig.inset img{padding:.4rem}}
