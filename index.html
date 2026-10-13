@@ -87,7 +87,7 @@
     <div class="step-panel active" data-group="steps" data-id="gen">
       <div>
         <h4>① The WAM regenerates its own past</h4>
-        <p>Given only the language instruction of task <i>k</i>−1, WAM<sub><i>k</i>−1</sub> first samples an initial observation from the instruction alone, then autoregressively generates <i>M</i> = 40 candidate rollouts as <i>H</i>-step chunks of observations and actions. Nothing from the original training data is used.</p>
+        <p>Given only the language instruction of task <i>k</i>−1, WAM<sub><i>k</i>−1</sub> generates candidate rollouts of observations and actions from scratch. Nothing from the original training data is used.</p>
         <p>Raw rollouts already help: replaying them lifts the average LIBERO success rate from 12.5% (sequential fine-tuning) to 70.4%. But they are still far from real data, for the two reasons shown in the next steps.</p>
       </div>
       <div class="media">
@@ -241,7 +241,7 @@
     </div>
     <h3 class="sub">Generated replay tracks real replay across buffer sizes</h3>
     <figure class="fig inset w-900" data-aos="fade-up"><img src="./resources/images/budget_curve_spatial.png" alt="Replay buffer size vs. final SR and NBT on LIBERO-Spatial">
-      <figcaption>Final SR and NBT on LIBERO-Spatial as the replay buffer grows from 1 to 50 episodes per previous task. ER replays real demonstrations; R²-WAM replays generated rollouts and uses no real data at all. Both methods saturate beyond 20 episodes, the buffer used in the main experiments. With a single replay episode per task, R²-WAM even outperforms ER (79.2% vs. 69.6% SR); we conjecture that a generated rollout reflects the typical behaviour the model has learned for a task and thus anchors it better than a single real demonstration. Shading: standard error over 50 trials per task.</figcaption></figure>
+      <figcaption>Success rate on LIBERO-Spatial as the replay buffer grows from 1 to 50 episodes per previous task. R²-WAM, replaying only generated rollouts, tracks ER closely across all buffer sizes and even outperforms it with a single episode per task.</figcaption></figure>
     <h3 class="sub">Does the consistency score pick good rollouts?</h3>
     <figure class="fig inset w-1000" data-aos="fade-up"><img src="./resources/images/consistency_analysis.png" alt="Consistency score vs executability">
       <figcaption><b>(a)</b> Generated rollouts are ranked by <i>s</i><sub>flow</sub> and split into five bins. Executing each rollout’s generated actions in the simulator, 82.5% of the rollouts in the most consistent bin complete the task, versus 41.2% in the least consistent bin: the score predicts whether a rollout is physically executable. <b>(b)</b> Flow simulated from the generated actions (blue) against flow estimated from the generated frames (orange) for a consistent and an inconsistent rollout.</figcaption></figure>
@@ -254,7 +254,7 @@
     <h2 class="title">Real-World Results</h2>
     <p class="intro">Five sandwich-making tasks learned one after another on a real arm with a dexterous hand: steak, luncheon meat, cheese, fried egg, meat slice. Each task has four stages and is scored by progress rate.</p>
     <div class="two-col v-center real-cols" data-aos="fade-up">
-      <figure class="fig inset"><img src="./resources/images/real_tasks_montage.png" alt="Five real tasks and their four stages"><figcaption>Each row is one demonstration from the head camera (wrist camera inset); columns show the initial state and the four scored steps. The tasks share the same scene and differ only in the instructed ingredient and the grasp it demands, so forgetting shows up as picking the wrong ingredient or failing the grasp.</figcaption></figure>
+      <figure class="fig inset"><img src="./resources/images/real_tasks_montage.png" alt="Five real tasks and their four stages"><figcaption>The tasks share the same scene and differ only in the instructed ingredient and the grasp it demands, so forgetting shows up as picking the wrong ingredient or failing the grasp.</figcaption></figure>
       <div>
         <table class="res">
           <tr><th>Method</th><th>SR ↑</th><th>NBT ↓</th><th>Plast. ↑</th></tr>
@@ -262,7 +262,7 @@
           <tr><td>Seq-FT</td><td>28.5</td><td>65.62</td><td>98.8</td></tr>
           <tr class="ours"><td>R²-WAM (ours)</td><td>89.5</td><td>3.45</td><td>93.8</td></tr>
         </table>
-        <p class="tnote">Metrics are computed on the progress rate over 20 trials per task. R²-WAM retains the earlier tasks within 2.3 points of ER without any real data of those tasks. Both replay methods give up 4–5 points of Plasticity relative to Seq-FT, which we attribute to interference among co-trained tasks that differ only in a visually similar target.</p>
+        <p class="tnote">R²-WAM retains the earlier tasks nearly as well as ER without any real data of those tasks.</p>
       </div>
     </div>
 
