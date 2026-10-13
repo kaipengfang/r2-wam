@@ -104,7 +104,7 @@
       <div>
         <h4>② Truncate at task completion</h4>
         <p><b>Problem.</b> The WAM has no notion of being done. After the object is placed it keeps generating motion: the gripper returns to the basket, re-grasps the bowl, or wanders. Replaying these tails teaches purposeless behaviour.</p>
-        <p><b>Fix.</b> A VLM acts as an agentic evaluator: given the instruction, subsampled frames annotated with step index, gripper command and end-effector speed, and one human-annotated in-context example, it locates the step at which the task is completed, and the rollout is cut at the following chunk boundary. Rollouts judged as not accomplishing the task are discarded.</p>
+        <p><b>Fix.</b> A VLM acts as an agentic evaluator: given the instruction and annotated frames of the rollout, it locates the step at which the task is completed, and the rollout is cut there. Rollouts judged as not accomplishing the task are discarded.</p>
         <p style="color:var(--muted);font-size:.9rem">Removing truncation drops LIBERO-Spatial success from 94.0% to 70.8%.</p>
       </div>
       <div class="media">
@@ -117,7 +117,7 @@
       <div>
         <h4>② Filter physically inconsistent rollouts</h4>
         <p><b>Problem.</b> Under open-loop generation the actions gradually drift away from the observations: the generated video shows one arm pose while the generated actions imply another.</p>
-        <p><b>Fix.</b> The environment of a previous task is gone, but the robot itself is fully specified by its URDF and camera parameters. The generated actions are therefore executed in a robot-only simulator to obtain the optical flow they imply, while a dense 3D tracker (Track4World) estimates the flow actually visible in the generated frames. Their 2D and 3D discrepancy on the robot pixels gives the physical-consistency score <i>s</i><sub>flow</sub>, and the <i>N</i> = 20 rollouts with the lowest score are kept.</p>
+        <p><b>Fix.</b> The generated actions are executed in a robot-only simulator to obtain the optical flow they imply, while a 3D tracker estimates the flow actually visible in the generated frames. Their discrepancy gives the physical-consistency score <i>s</i><sub>flow</sub>, and the most consistent rollouts are kept.</p>
         <p style="color:var(--muted);font-size:.9rem">Removing filtering drops LIBERO-Spatial success from 94.0% to 80.8%.</p>
       </div>
       <div class="media">
@@ -134,7 +134,7 @@
     <div class="step-panel" data-group="steps" data-id="replay">
       <div>
         <h4>③ Replay with the new task</h4>
-        <p>The kept rollouts R<sub><i>k</i>−1</sub> join the replay set R<sub>&lt;<i>k</i></sub>, which is mixed with the demonstrations D<sub><i>k</i></sub> of the new task (equal sampling weight) to fine-tune WAM<sub><i>k</i>−1</sub> into WAM<sub><i>k</i></sub>. The same procedure repeats at every stage, so the model never needs any real data of earlier tasks.</p>
+        <p>The kept rollouts R<sub><i>k</i>−1</sub> join the replay set R<sub>&lt;<i>k</i></sub>, which is mixed with the demonstrations D<sub><i>k</i></sub> of the new task to fine-tune WAM<sub><i>k</i>−1</sub> into WAM<sub><i>k</i></sub>. The same procedure repeats at every stage, so the model never needs any real data of earlier tasks.</p>
         <p>With 20 rectified rollouts per previous task, R²-WAM reaches 92.7% average success on LIBERO, 1.9 points below ER, which replays 20 real demonstrations per task.</p>
       </div>
       <div class="media">
