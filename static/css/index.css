@@ -27,6 +27,7 @@ p.body{text-align:justify;margin:0 0 1rem}
 .authors a{color:var(--blue);text-decoration:none}.authors a:hover{text-decoration:underline}
 .authors sup{font-size:.7em}
 .affil{color:var(--muted);font-size:.92rem;margin:0 0 1.6rem;line-height:1.9}
+.affil .note{font-size:.85rem}
 .venue{font-weight:600;margin:.6rem 0 1.4rem}
 .links{display:flex;justify-content:center;flex-wrap:wrap;gap:.7rem;margin-top:.4rem}
 .btn{display:inline-flex;align-items:center;gap:.5rem;background:#363636;color:#fff;border-radius:9999px;padding:.55rem 1.2rem;font-size:.95rem;text-decoration:none;transition:background .2s,transform .2s;border:0;font-family:inherit}
