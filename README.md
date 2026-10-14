@@ -12,4 +12,4 @@ Live: https://kaipengfang.github.io/r2-wam/ (GitHub Pages, branch `main`, root).
 - `resources/pdf/r2wam.pdf` — arXiv-version PDF
 - `demos/` — the five style demos used for style selection (git-ignored)
 
-Placeholders still to fill: arXiv link (button greyed out), Code link (button greyed out), homepages for Hangxu Liu / Chaojian Shi / Hongzi Zhu / Minyi Guo (`#`).
+Placeholders still to fill: Code link (button greyed out), homepages for Hangxu Liu / Chaojian Shi / Hongzi Zhu / Minyi Guo (`#`).
