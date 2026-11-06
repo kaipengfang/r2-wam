@@ -35,6 +35,21 @@ p.body{text-align:justify;margin:0 0 1rem}
 .btn.soon{background:#9a9a9a;cursor:default}.btn.soon:hover{background:#9a9a9a;transform:none}
 .btn.soon small{opacity:.85;font-size:.8em}
 
+/* news */
+.news{display:flex;justify-content:center;margin:1.6rem auto 0;padding:0 .5rem}
+.news-pill{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:.7rem;max-width:100%;background:linear-gradient(90deg,#fdeeec,#fff6f4);border:1px solid #f1c4bd;color:var(--ink);border-radius:9999px;padding:.4rem 1.15rem .4rem .45rem;font-size:.97rem;line-height:1.45;text-decoration:none;text-align:left;box-shadow:0 3px 12px rgba(192,57,43,.10);transition:border-color .2s,box-shadow .2s,transform .2s}
+.news-pill:hover{border-color:var(--red);box-shadow:0 6px 18px rgba(192,57,43,.18);transform:translateY(-1px)}
+.news-pill b{color:var(--red);font-weight:700}
+.news-pill::after{content:"";position:absolute;top:0;left:-40%;width:30%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:news-shine 4.5s ease-in-out 1s infinite;pointer-events:none}
+.news-date{flex:none;font-family:var(--mono);font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--red);color:#fff;border-radius:9999px;padding:.25rem .7rem}
+.news-pop{display:inline-block;margin-right:.15rem;transform-origin:70% 80%;animation:news-pop 2.4s ease-in-out .6s infinite}
+.news-arrow{flex:none;color:var(--red);font-size:.8rem;transition:transform .2s}
+.news-pill:hover .news-arrow{transform:translateX(3px)}
+@keyframes news-shine{0%,60%{left:-40%}100%{left:120%}}
+@keyframes news-pop{0%,70%,100%{transform:rotate(0) scale(1)}78%{transform:rotate(-14deg) scale(1.2)}86%{transform:rotate(10deg) scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.news-pill::after,.news-pop{animation:none}}
+@media (max-width:640px){.news-pill{border-radius:16px;font-size:.9rem;padding:.5rem .9rem .5rem .5rem}}
+
 /* teaser video */
 .teaser-wrap{position:relative;max-width:1000px;margin:2rem auto 0}
 .teaser-wrap video{width:100%;display:block;border-radius:var(--radius);box-shadow:0 6px 24px rgba(0,0,0,.16);background:#000}
